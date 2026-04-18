@@ -1,0 +1,186 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title >Tech Puzzle</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h1>🧩 Tech word Riddle</h1>
+
+<button onclick="Generate()"  class="btn-gen">Generate</button>
+<button onclick="checkAnswers()" class="btn-check">Check</button>
+<button onclick="showAnswers()" class="btn-show" id="showBtn" style="display:none;">Show Answers</button>
+<button onclick="location.reload()" class="btn-reset">Reset</button>
+
+<div id="crossword" class="crossword"></div>
+
+<div class="clues">
+<h3 >Clues</h3>
+<ul id="clueList"></ul>
+</div>
+
+<script>
+// ================= WORD LIST =================
+const techWords = [
+{word:"ALGORITHM", clue:"Step-by-step problem solving method"},
+{word:"API", clue:"Connects different software systems"},
+{word:"ARRAY", clue:"Stores multiple values in one variable"},
+{word:"BACKEND", clue:"Server-side application logic"},
+{word:"CACHE", clue:"Temporary storage for quick access"},
+{word:"CLOUD", clue:"Stores data over the internet"},
+{word:"CPU", clue:"Brain of the computer"},
+{word:"DATABASE", clue:"Stores structured data"},
+{word:"DEBUGGING", clue:"Process of fixing errors"},
+{word:"FRONTEND", clue:"User interface of an application"},
+{word:"GIT", clue:"Tracks code changes"},
+{word:"HTTP", clue:"Protocol for web communication"},
+{word:"JSON", clue:"Data format for exchanging information"},
+{word:"KERNEL", clue:"Core part of an operating system"},
+{word:"SERVER", clue:"Provides data to clients"}
+];
+
+// ================= GLOBAL =================
+let grid = [];
+
+// ================= RANDOM =================
+function getRandomWords(count=10){
+  return [...techWords].sort(()=>0.5-Math.random()).slice(0,count);
+}
+
+// ================= GENERATE =================
+function Generate(){
+  document.getElementById("crossword").innerHTML="";
+  document.getElementById("clueList").innerHTML="";
+  document.getElementById("showBtn").style.display="none";
+
+  grid=[];
+
+  let selected = getRandomWords();
+
+  for(let i=0;i<12;i++){
+    grid[i]=[];
+    for(let j=0;j<12;j++){
+      grid[i][j]="";
+    }
+  }
+
+  selected.forEach((item,index)=>{
+    let row = index+1;
+    let col = 1;
+
+    for(let i=0;i<item.word.length;i++){
+      grid[row][col+i] = item.word[i];
+    }
+
+    let li=document.createElement("li");
+    li.textContent=item.clue;
+    document.getElementById("clueList").appendChild(li);
+  });
+
+  drawGrid();
+}
+
+// ================= DRAW =================
+function drawGrid(){
+  let board=document.getElementById("crossword");
+
+  for(let i=0;i<12;i++){
+    let rowDiv=document.createElement("div");
+
+    for(let j=0;j<12;j++){
+      let square=document.createElement("div");
+      square.className="square";
+
+      if(grid[i][j]!=""){
+        let input=document.createElement("input");
+        input.className="char";
+        input.dataset.ans=grid[i][j];
+
+        input.dataset.row = i;
+        input.dataset.col = j;
+
+        input.addEventListener("input", handleInput);
+        input.addEventListener("keydown", handleBackspace);
+
+        square.appendChild(input);
+      }
+
+      rowDiv.appendChild(square);
+    }
+    board.appendChild(rowDiv);
+  }
+}
+
+// ================= AUTO MOVE =================
+function handleInput(e){
+  let input = e.target;
+  let row = parseInt(input.dataset.row);
+  let col = parseInt(input.dataset.col);
+
+  input.value = input.value.toUpperCase().slice(0,1);
+
+  let next = document.querySelector(
+    `.char[data-row="${row}"][data-col="${col+1}"]`
+  );
+
+  if(next) next.focus();
+}
+
+function handleBackspace(e){
+  if(e.key === "Backspace" && e.target.value === ""){
+    let row = parseInt(e.target.dataset.row);
+    let col = parseInt(e.target.dataset.col);
+
+    let prev = document.querySelector(
+      `.char[data-row="${row}"][data-col="${col-1}"]`
+    );
+
+    if(prev) prev.focus();
+  }
+}
+
+// ================= CHECK =================
+function checkAnswers(){
+  let inputs=document.querySelectorAll(".char");
+  let score=0;
+
+  inputs.forEach(input=>{
+    input.classList.remove("correct","wrong");
+
+    if(input.value.toUpperCase()===input.dataset.ans){
+      input.classList.add("correct");
+      score++;
+    } else {
+      input.classList.add("wrong");
+    }
+  });
+
+  alert("Score: "+score+"/"+inputs.length);
+
+  // 👉 show answer button
+  document.getElementById("showBtn").style.display="inline-block";
+}
+
+// ================= SHOW ANSWERS =================
+function showAnswers(){
+  let inputs = document.querySelectorAll(".char");
+
+  inputs.forEach(input=>{
+    input.value = input.dataset.ans;
+    input.classList.remove("wrong");
+    input.classList.add("correct");
+    input.disabled = true;
+  });
+}
+
+// ================= INIT =================
+Generate();
+</script>
+
+</body>
+</html>
+
